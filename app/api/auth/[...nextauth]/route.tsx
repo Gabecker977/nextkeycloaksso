@@ -3,13 +3,16 @@ import NextAuth from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 import KeycloakProvider from 'next-auth/providers/keycloak';
 import {encrypt} from '../../../../utils/encryption';
+import { log } from 'console';
 
 async function refreshAccessToken(token: any) {
+    console.log("Refreshing token..."+token.refresh_token);
+    
     const resp = await fetch(`${process.env.REFRESH_TOKEN_URL}`, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
-        client_id: process.env.KEYCLOAK_CLIENT_ID as string,
-        client_secret: process.env.KEYCKOAK_CLIENT_SECRET as string, 
+        client_id: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID as string,
+        client_secret: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_SECRET as string, 
         grant_type: "refresh_token",
         refresh_token: token.refresh_token,
       }),
@@ -47,13 +50,15 @@ export const authOptions = {
             token.id_token = account.id_token;
             token.expires_at = account.expires_at;
             token.refresh_token = account.refresh_token;
+            console.log("Token is created. "+Date.now());
+            
             return token;
           } else if (nowTimeStamp < token.expires_at) {
             // token has not expired yet, return it
             return token;
           } else {
             // token is expired, try to refresh it
-            console.log("Token has expired. Will refresh...")
+            console.log("Token has expired. Will refresh..."+Date.now());
             try {
               const refreshedToken = await refreshAccessToken(token);
               console.log("Token is refreshed.")
@@ -66,6 +71,7 @@ export const authOptions = {
         },
         async session({ session, token }:{session: any, token: any}) {
           // Send properties to the client
+          //console.log("Refreshing token..."+token.refresh_token);
           session.access_token = encrypt(token.access_token); // see utils/sessionTokenAccessor.js
           session.id_token = encrypt(token.id_token);  // see utils/sessionTokenAccessor.js
           session.roles = token.decoded.realm_access.roles;
