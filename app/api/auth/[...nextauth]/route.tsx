@@ -69,6 +69,8 @@ export const authOptions = {
           session.access_token = encrypt(token.access_token); // see utils/sessionTokenAccessor.js
           session.id_token = encrypt(token.id_token);  // see utils/sessionTokenAccessor.js
           session.roles = token.decoded.realm_access.roles;
+          session.expires_at = token.expires_at;
+          session.groups= token.decoded.groups;
           session.error = token.error;      
           return session;
         },
