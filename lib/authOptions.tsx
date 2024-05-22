@@ -1,9 +1,7 @@
-//import the nextauth
-import NextAuth from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import { jwtDecode } from 'jwt-decode';
 import KeycloakProvider from 'next-auth/providers/keycloak';
-import {encrypt} from '../../../../utils/encryption';
-import { log } from 'console';
+import {encrypt} from '@/utils/encryption';
 
 async function refreshAccessToken(token: any) {
     console.log("Refreshing token..."+token.refresh_token);
@@ -31,7 +29,7 @@ async function refreshAccessToken(token: any) {
     };
   }
 
-export const authOptions = {
+const authOptions : NextAuthOptions  = {
     providers: [
         KeycloakProvider({
         clientId: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID as string,
@@ -69,7 +67,7 @@ export const authOptions = {
             }
           }
         },
-        async session({ session, token }:{session: any, token: any}) {
+        async session({ session, token }:{session: any , token: any}) {
           // Send properties to the client
           //console.log("Refreshing token..."+token.refresh_token);
           session.access_token = encrypt(token.access_token); // see utils/sessionTokenAccessor.js
@@ -83,5 +81,4 @@ export const authOptions = {
       },
 };
 
-const handler = NextAuth(authOptions);
-export {handler as GET, handler as POST}
+export {authOptions};
